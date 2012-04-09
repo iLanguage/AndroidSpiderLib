@@ -22,8 +22,7 @@
         <service
             android:name=".services.GetOnePage"
             android:enabled="true" />
-        
-                <service
+        <service
             android:name=".services.GetAllDaughters"
             android:enabled="true" />
     </application>
