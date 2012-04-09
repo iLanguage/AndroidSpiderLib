@@ -1,0 +1,12 @@
+#################
+# Eclipse files #
+#################
+.project
+.settings
+.classpath
+
+###################
+# Generated files #
+###################
+bin
+gen
