@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class GetOnePage extends IntentService {
+	public static final String URL = "URL";
 	
 	public GetOnePage() {
 		super("GetOnePage");
@@ -12,12 +13,10 @@ public class GetOnePage extends IntentService {
 
 	public GetOnePage(String name) {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	protected void onHandleIntent(Intent arg0) {
-		Log.d("Spider", "Services running");
+	protected void onHandleIntent(Intent intent) {
+		Log.d("Spider", "Services running and received URL: " + intent.getStringExtra(GetOnePage.URL));
 	}
-
 }
