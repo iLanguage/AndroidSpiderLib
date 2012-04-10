@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class GetOnePage extends IntentService {
+	public static final String TAG = "GetOnePage";
 	public static final String URL = "URL";
 	
 	public GetOnePage() {
@@ -17,6 +18,6 @@ public class GetOnePage extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.d("Spider", "Services running and received URL: " + intent.getStringExtra(GetOnePage.URL));
+		Log.d(TAG, "I am going to spider this URL: " + intent.getStringExtra(GetOnePage.URL));
 	}
 }
