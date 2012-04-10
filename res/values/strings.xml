@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, AndroidSpiderLibActivity!</string>
     <string name="app_name">AndroidSpiderLib</string>
+    <string name="authority">ca.ilanguage.survey</string>
 
 </resources>
