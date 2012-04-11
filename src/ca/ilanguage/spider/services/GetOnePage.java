@@ -1,6 +1,7 @@
 package ca.ilanguage.spider.services;
 
 import ca.ilanguage.spider.util.SdCardDao;
+import ca.ilanguage.spider.util.Spider;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -27,7 +28,7 @@ public class GetOnePage extends IntentService {
 	protected void onHandleIntent(Intent intent) {
 		Log.d(TAG, "I am going to spider this URL: " + intent.getStringExtra(GetOnePage.URL));
 
-		// Insert a row into the database
+		// Insert a row into the database with the URL that is going to be Spidered
 		insertUrlIntoDatabase(
 				intent.getStringExtra(GetOnePage.CONTENT_URI), 
 				intent.getStringExtra(GetOnePage.URL_COLUMN_NAME), 
@@ -36,9 +37,12 @@ public class GetOnePage extends IntentService {
 				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME)
 		);
 		
+		// Get the HTML of the given URL
+		String html = Spider.getHtml(intent.getStringExtra(GetOnePage.URL));
+		
 		// Create a file containing the URL
 		if (SdCardDao.isWritable()) {
-			SdCardDao.writeToFile(getApplicationContext(), "test.txt", intent.getStringExtra(GetOnePage.URL));
+			SdCardDao.writeToFile(getApplicationContext(), "test.html", html);
 		} else {
 			Log.d(TAG, "Could not write to SD card.");
 		}
