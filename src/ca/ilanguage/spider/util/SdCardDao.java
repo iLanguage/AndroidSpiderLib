@@ -40,8 +40,10 @@ public class SdCardDao {
 
 	/**
 	 * Uses the given context to save the given file contents to the SD card with the given file name.
+	 * 
+	 * @return The absolute path of the new file.
 	 */
-	public static void writeToFile(Context ctx, String filename, String fileContents) {
+	public static String writeToFile(Context ctx, String filename, String fileContents) {
 		// Create the directory if it does not exist
 		ctx.getExternalFilesDir(null).mkdirs();
 		
@@ -62,6 +64,8 @@ public class SdCardDao {
             	}
             }
         }
+        
+        return file.getAbsolutePath();
 	}
 	
 	/**

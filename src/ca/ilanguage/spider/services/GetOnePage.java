@@ -13,6 +13,7 @@ public class GetOnePage extends IntentService {
 	public static final String URL = "URL";
 	public static final String CONTENT_URI = "contentUri";
 	public static final String URL_COLUMN_NAME = "url";
+	public static final String HTML_FILE_COLUMN_NAME = "html";
 	public static final String CREATED_COLUMN_NAME = "created";
 	public static final String MODIFIED_COLUMN_NAME = "modified";
 	
@@ -27,34 +28,35 @@ public class GetOnePage extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		Log.d(TAG, "I am going to spider this URL: " + intent.getStringExtra(GetOnePage.URL));
-
-		// Insert a row into the database with the URL that is going to be Spidered
-		insertUrlIntoDatabase(
-				intent.getStringExtra(GetOnePage.CONTENT_URI), 
-				intent.getStringExtra(GetOnePage.URL_COLUMN_NAME), 
-				intent.getStringExtra(GetOnePage.URL),
-				intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
-				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME)
-		);
 		
 		// Get the HTML of the given URL
 		String html = Spider.getHtml(intent.getStringExtra(GetOnePage.URL));
 		
-		// Create a file containing the URL
+		// Create a file containing the HTML
+		String fileLocation = "";
 		if (SdCardDao.isWritable()) {
-			SdCardDao.writeToFile(getApplicationContext(), "test.html", html);
+			fileLocation = SdCardDao.writeToFile(getApplicationContext(), "test.html", html);
 		} else {
 			Log.d(TAG, "Could not write to SD card.");
 		}
 		
-		// Log the contents of the file
-		Log.d(TAG, "File contents: " + SdCardDao.readFromFile(getApplicationContext(), "test.txt"));
+		// Insert a row into the database with the URL and the file location of its HTML.
+		insertUrlIntoDatabase(
+				intent.getStringExtra(GetOnePage.CONTENT_URI), 
+				intent.getStringExtra(GetOnePage.URL_COLUMN_NAME), 
+				intent.getStringExtra(GetOnePage.URL),
+				intent.getStringExtra(GetOnePage.HTML_FILE_COLUMN_NAME),
+				fileLocation,
+				intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
+				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME)
+		);
 	}
 
-	private void insertUrlIntoDatabase(String contentUri, String urlName, String urlValue, String createdDateName, String modifiedDateName) {
+	private void insertUrlIntoDatabase(String contentUri, String urlName, String urlValue, String htmlFileName, String htmlValue, String createdDateName, String modifiedDateName) {
 		// Put together all the values for the new row
 		ContentValues values = new ContentValues();
 		values.put(urlName, urlValue);
+		values.put(htmlFileName, htmlValue);
 		values.put(createdDateName, System.currentTimeMillis());
 		values.put(modifiedDateName, System.currentTimeMillis());
 
