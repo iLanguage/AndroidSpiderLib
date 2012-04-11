@@ -18,13 +18,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".services.GetOnePage"
-            android:enabled="true" />
-        <service
-            android:name=".services.GetAllDaughters"
-            android:enabled="true" />
     </application>
 
 </manifest>
