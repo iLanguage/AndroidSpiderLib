@@ -92,7 +92,7 @@ public class Spider {
 	 * (css0.css, css1.css, etc), and returns a HashMap of the replacements where the key is the
 	 * new relative URL and the value is the original absolute URL.
 	 */
-	public HashMap<String, String> getAndReplaceCss() {
+	public HashMap<String, String> getAndReplaceCss(String filePrefix, String fileSuffix) {
 		HashMap<String, String> cssLinks = new HashMap<String, String>();
 		int cssIndex = 0;
 		
@@ -107,7 +107,7 @@ public class Spider {
 				element.removeAttr("href");
 				
 				// Add the new relative URL to the CSS file
-				String newLink = cssIndex + ".css";
+				String newLink = filePrefix + cssIndex + fileSuffix;
 				element.attr("href", newLink);
 				cssIndex++;
 				
@@ -130,7 +130,7 @@ public class Spider {
 	 * Assumes that if the protocol was not specified, then it will work with the HTTP protocol.
 	 */
 	// Code based on: http://www.javamex.com/tutorials/regular_expressions/search_replace_loop.shtml
-	public HashMap<String, String> getAndReplaceImports() {
+	public HashMap<String, String> getAndReplaceImports(String filePrefix, String fileSuffix) {
 		HashMap<String, String> importLinks = new HashMap<String, String>();
 		int importIndex = 0;
 		
@@ -177,7 +177,7 @@ public class Spider {
 			  		}
 			  		
 			  		// Add the new relative URL to the @import
-			  		String newLink = "import" + importIndex + ".css";
+			  		String newLink = filePrefix + importIndex + fileSuffix;
 			  		m.appendReplacement(sb, "@import '" + newLink + "';");
 			  		importIndex++;
 			  		
@@ -205,7 +205,7 @@ public class Spider {
 	 * Assumes that if the protocol was not specified, then it will work with the HTTP protocol.
 	 */
 	// Code based on: http://www.javamex.com/tutorials/regular_expressions/search_replace_loop.shtml
-	public HashMap<String, String> getAndReplaceUrls() {
+	public HashMap<String, String> getAndReplaceUrls(String filePrefix, String fileSuffix) {
 		HashMap<String, String> urlLinks = new HashMap<String, String>();
 		int urlIndex = 0;
 		
@@ -248,7 +248,7 @@ public class Spider {
 			  		originalLink = originalLink.replaceAll("&amp;", "&");
 			  		
 			  		// Add the new relative URL to the url()
-			  		String newLink = "url" + urlIndex;
+			  		String newLink = filePrefix + urlIndex + fileSuffix;
 			  		m.appendReplacement(sb, "url('" + newLink + "')");
 			  		urlIndex++;
 			  		

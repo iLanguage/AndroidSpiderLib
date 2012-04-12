@@ -13,6 +13,7 @@ import android.util.Log;
 public class GetOnePage extends IntentService {
 	public static final String TAG = "GetOnePage";
 	public static final String URL = "URL";
+	public static final String FILE_PREFIX = "prefix";
 	public static final String CONTENT_URI = "contentUri";
 	public static final String URL_COLUMN_NAME = "url";
 	public static final String HTML_FILE_COLUMN_NAME = "html";
@@ -33,31 +34,30 @@ public class GetOnePage extends IntentService {
 		Log.d(TAG, "I am going to spider this URL: " + intent.getStringExtra(GetOnePage.URL));
 
 		// Create a Spider to spider the HTML of the given URL
-		// Spider spider = new Spider(intent.getStringExtra(GetOnePage.URL));
-		Spider spider = new Spider("https://docs.google.com/spreadsheet/viewform?formkey=dGpkMlc3aWZLLWVhWTBSZ0FIMVQ3dnc6MQ"); // Hardcoded "Math Test" survey
+		Spider spider = new Spider(intent.getStringExtra(GetOnePage.URL));
 
 		String fileLocation = "";
 		if (SdCardDao.isWritable()) {
 			// Save the linked CSS file(s) and modify the HTML to point to the new location(s)
-			HashMap<String, String> cssLinks = spider.getAndReplaceCss();
+			HashMap<String, String> cssLinks = spider.getAndReplaceCss(intent.getStringExtra(FILE_PREFIX) + "link", ".css");
 			for (String newLink : cssLinks.keySet()) {
 				SdCardDao.downloadFromUrl(cssLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
 			}
 			
 			// Save the CSS file(s) imported in the <style> tag and modify the HTML to point to the new location(s)
-			HashMap<String, String> importLinks = spider.getAndReplaceImports();
+			HashMap<String, String> importLinks = spider.getAndReplaceImports(intent.getStringExtra(FILE_PREFIX) + "import", ".css");
 			for (String newLink : importLinks.keySet()) {
 				SdCardDao.downloadFromUrl(importLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
 			}
 			
 			// Save the files referenced by the CSS in the <style> tag and modify the HTML to point to the new location(s)
-			HashMap<String, String> fileLinks = spider.getAndReplaceUrls();
+			HashMap<String, String> fileLinks = spider.getAndReplaceUrls(intent.getStringExtra(FILE_PREFIX) + "url", "");
 			for (String newLink : fileLinks.keySet()) {
 				SdCardDao.downloadFromUrl(fileLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
 			}
 			
 			// Save the modified HTML
-			fileLocation = SdCardDao.writeToFile(spider.getHtml(), getApplicationContext().getExternalFilesDir(null).toString(), "index.html");
+			fileLocation = SdCardDao.writeToFile(spider.getHtml(), getApplicationContext().getExternalFilesDir(null).toString(), intent.getStringExtra(FILE_PREFIX) + "index.html");
 		} else {
 			Log.d(TAG, "Could not write to SD card.");
 		}
