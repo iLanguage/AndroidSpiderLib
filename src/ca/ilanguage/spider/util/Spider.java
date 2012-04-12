@@ -2,6 +2,7 @@ package ca.ilanguage.spider.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -82,5 +83,37 @@ public class Spider {
 		}
 		
 		return cssFiles;
+	}
+	
+	/**
+	 * Gets all linked CSS URLs in the HTML, replaces the URLs in the HTML with a new relative URL,
+	 * (0.css, 1.css, 2.css, etc), and returns a HashMap of the replacements where the key is the
+	 * new relative URL and the value is the original absolute URL.
+	 */
+	public HashMap<String, String> getAndReplaceCss() {
+		HashMap<String, String> cssLinks = new HashMap<String, String>();
+		int cssIndex = 0;
+		
+		if (doc != null) {
+			// Loop over all <link> tags that have the attribute type="text/css"
+			Elements elements = doc.select("link[type=text/css]");
+			for (Element element : elements) {
+				// Get the original absolute URL of the CSS file
+				String originalLink = element.attr("abs:href");
+				
+				// Remove the original URL from the CSS file
+				element.removeAttr("href");
+				
+				// Add the new relative URL to the CSS file
+				String newLink = cssIndex + ".css";
+				element.attr("href", newLink);
+				cssIndex++;
+				
+				// Map the original and new URLs together
+				cssLinks.put(newLink, originalLink);
+			}
+		}
+		
+		return cssLinks;
 	}
 }
