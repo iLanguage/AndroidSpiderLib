@@ -121,14 +121,15 @@ public class Spider {
 
 	/**
 	 * Gets all CSS URLs imported in the HTML's <style> tag, replaces the URLs in the HTML 
-	 * with a new relative URL, (import0.css, import1.css, etc), and returns a HashMap of \
+	 * with a new relative URL, (import0.css, import1.css, etc), and returns a HashMap of 
 	 * the replacements where the key is the new relative URL and the value is the original 
 	 * absolute URL.
 	 * 
-	 * Assumes that the CSS URLs imported in the HTML's <style> tag is an absolute URL.
+	 * Assumes that the CSS URLs imported in the HTML's <style> tag are absolute URLs.
 	 * 
-	 * Assumes that if a URL leads with "//", then it will work with the HTTP protocol.
+	 * Assumes that if the protocol was not specified, then it will work with the HTTP protocol.
 	 */
+	// Code based on: http://www.javamex.com/tutorials/regular_expressions/search_replace_loop.shtml
 	public HashMap<String, String> getAndReplaceImports() {
 		HashMap<String, String> importLinks = new HashMap<String, String>();
 		int importIndex = 0;
@@ -164,9 +165,15 @@ public class Spider {
 			  			originalLink = importContent.substring(0, importContent.indexOf(" "));
 			  		} // else The URL is the only thing after the @import
 			  		originalLink.trim();
-			  		// Change any leading "//" into "http://"
+			  		
+			  		// Trim any leading "//" from
 			  		if (originalLink.indexOf("//") == 0) {
-			  			originalLink = "http:" + originalLink;
+			  			originalLink = originalLink.substring("//".length());
+			  		}
+			  		
+			  		// Add "http://" if necessary
+			  		if (originalLink.indexOf("http") != 0) {
+			  			originalLink = "http://" + originalLink;
 			  		}
 			  		
 			  		// Add the new relative URL to the @import
@@ -186,8 +193,72 @@ public class Spider {
 		return importLinks;
 	}
 
+	/**
+	 * Gets all file URLs referenced in the HTML's <style> tag, replaces the URLs in the HTML 
+	 * with a new relative URL, (url0, url1, etc), and returns a HashMap of 
+	 * the replacements where the key is the new relative URL and the value is the original 
+	 * absolute URL.
+	 * 
+	 * Assumes that the URLs imported in the HTML's <style> tag are absolute URLs.
+	 * 
+	 * Assumes that if the protocol was not specified, then it will work with the HTTP protocol.
+	 */
+	// Code based on: http://www.javamex.com/tutorials/regular_expressions/search_replace_loop.shtml
 	public HashMap<String, String> getAndReplaceUrls() {
 		HashMap<String, String> urlLinks = new HashMap<String, String>();
+		int urlIndex = 0;
+		
+		if (doc != null) {
+			// Loop over all the <style> tags
+			Elements elements = doc.select("style");
+			for (Element element : elements) {
+				// Get the contents of the <style> tag
+				String style = element.html();
+				
+				// Regular expression to get the content of any url() statements
+				Pattern patt = Pattern.compile("url\\(([^\\)]*)\\)");
+				Matcher m = patt.matcher(style);
+				
+				// Loop over all the url() statements
+				StringBuffer sb = new StringBuffer(style.length());
+			  	while (m.find()) {
+			  		// Get the old URL specified in the url()
+			  		String originalLink = m.group(1).trim();
+			  		if (originalLink.contains("\"")) {
+			  			// The URL is within double quotes
+			  			originalLink = originalLink.substring(originalLink.indexOf("\"") + 1, originalLink.lastIndexOf("\""));
+			  		} else if (originalLink.contains("'")) {
+			  			// The URL is within single quotes
+			  			originalLink = originalLink.substring(originalLink.indexOf("'") + 1, originalLink.lastIndexOf("'"));
+			  		} // else The URL is the only thing in the url()
+			  		originalLink.trim();
+			  		
+			  		// Trim any leading "//" from
+			  		if (originalLink.indexOf("//") == 0) {
+			  			originalLink = originalLink.substring("//".length());
+			  		}
+			  		
+			  		// Add "http://" if necessary
+			  		if (originalLink.indexOf("http") != 0) {
+			  			originalLink = "http://" + originalLink;
+			  		}
+			  		
+			  		// Change any "&amp;" to "&"
+			  		originalLink = originalLink.replaceAll("&amp;", "&");
+			  		
+			  		// Add the new relative URL to the url()
+			  		String newLink = "url" + urlIndex;
+			  		m.appendReplacement(sb, "url('" + newLink + "')");
+			  		
+					// Map the original and new URLs together
+					urlLinks.put(newLink, originalLink);
+			  	}
+			  	m.appendTail(sb);
+			  	
+			  	// Replace the contents of the <style> tag with the new URL
+			  	element.html(sb.toString());
+			}
+		}
 		
 		return urlLinks;
 	}
