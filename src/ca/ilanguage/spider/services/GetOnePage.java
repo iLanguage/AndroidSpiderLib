@@ -43,9 +43,17 @@ public class GetOnePage extends IntentService {
 				SdCardDao.downloadFromUrl(cssLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
 			}
 			
-			// TODO Save the CSS file(s) imported in the <style> tag and modify the HTML to point to the new location(s)
+			// Save the CSS file(s) imported in the <style> tag and modify the HTML to point to the new location(s)
+			HashMap<String, String> importLinks = spider.getAndReplaceImports();
+			for (String newLink : importLinks.keySet()) {
+				SdCardDao.downloadFromUrl(importLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
+			}
 			
-			// TODO Save the files referenced by the CSS in the <style> tag and modify the HTML to point to the new location(s)
+			// Save the files referenced by the CSS in the <style> tag and modify the HTML to point to the new location(s)
+			HashMap<String, String> fileLinks = spider.getAndReplaceUrls();
+			for (String newLink : fileLinks.keySet()) {
+				SdCardDao.downloadFromUrl(fileLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
+			}
 			
 			// Save the modified HTML
 			fileLocation = SdCardDao.writeToFile(spider.getHtml(), getApplicationContext().getExternalFilesDir(null).toString(), "index.html");

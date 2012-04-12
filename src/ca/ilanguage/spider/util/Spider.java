@@ -3,6 +3,8 @@ package ca.ilanguage.spider.util;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -87,7 +89,7 @@ public class Spider {
 	
 	/**
 	 * Gets all linked CSS URLs in the HTML, replaces the URLs in the HTML with a new relative URL,
-	 * (0.css, 1.css, 2.css, etc), and returns a HashMap of the replacements where the key is the
+	 * (css0.css, css1.css, etc), and returns a HashMap of the replacements where the key is the
 	 * new relative URL and the value is the original absolute URL.
 	 */
 	public HashMap<String, String> getAndReplaceCss() {
@@ -115,5 +117,78 @@ public class Spider {
 		}
 		
 		return cssLinks;
+	}
+
+	/**
+	 * Gets all CSS URLs imported in the HTML's <style> tag, replaces the URLs in the HTML 
+	 * with a new relative URL, (import0.css, import1.css, etc), and returns a HashMap of \
+	 * the replacements where the key is the new relative URL and the value is the original 
+	 * absolute URL.
+	 * 
+	 * Assumes that the CSS URLs imported in the HTML's <style> tag is an absolute URL.
+	 * 
+	 * Assumes that if a URL leads with "//", then it will work with the HTTP protocol.
+	 */
+	public HashMap<String, String> getAndReplaceImports() {
+		HashMap<String, String> importLinks = new HashMap<String, String>();
+		int importIndex = 0;
+		
+		if (doc != null) {
+			// Loop over all the <style> tags
+			Elements elements = doc.select("style");
+			for (Element element : elements) {
+				// Get the contents of the <style> tag
+				String style = element.html();
+				
+				// Regular expression to get the content of any @import statements
+				Pattern patt = Pattern.compile("@import ([^;]*);");
+				Matcher m = patt.matcher(style);
+				
+				// Loop over all the @import statements
+				StringBuffer sb = new StringBuffer(style.length());
+			  	while (m.find()) {
+			  		// Get the old URL specified in the @import
+			  		String importContent = m.group(1).trim();
+			  		String originalLink = "";
+			  		if (importContent.contains("\"")) {
+			  			// The URL is within double quotes
+			  			originalLink = importContent.substring(importContent.indexOf("\"") + 1, importContent.lastIndexOf("\""));
+			  		} else if (importContent.contains("'")) {
+			  			// The URL is within single quotes
+			  			originalLink = importContent.substring(importContent.indexOf("'") + 1, importContent.lastIndexOf("'"));
+			  		} else if (importContent.contains("(")) {
+			  			// The URL is within brackets without any quotes
+			  			originalLink = importContent.substring(importContent.indexOf("(") + 1, importContent.lastIndexOf(")"));
+			  		} else if (importContent.contains(" ")) {
+			  			// The URL is not quoted and is not within brackets but does have media specified
+			  			originalLink = importContent.substring(0, importContent.indexOf(" "));
+			  		} // else The URL is the only thing after the @import
+			  		originalLink.trim();
+			  		// Change any leading "//" into "http://"
+			  		if (originalLink.indexOf("//") == 0) {
+			  			originalLink = "http:" + originalLink;
+			  		}
+			  		
+			  		// Add the new relative URL to the @import
+			  		String newLink = "import" + importIndex + ".css";
+			  		m.appendReplacement(sb, "@import '" + newLink + "';");
+			  		
+					// Map the original and new URLs together
+					importLinks.put(newLink, originalLink);
+			  	}
+			  	m.appendTail(sb);
+			  	
+			  	// Replace the contents of the <style> tag with the new URL
+			  	element.html(sb.toString());
+			}
+		}
+		
+		return importLinks;
+	}
+
+	public HashMap<String, String> getAndReplaceUrls() {
+		HashMap<String, String> urlLinks = new HashMap<String, String>();
+		
+		return urlLinks;
 	}
 }
