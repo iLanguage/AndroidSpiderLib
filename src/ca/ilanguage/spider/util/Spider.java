@@ -179,6 +179,7 @@ public class Spider {
 			  		// Add the new relative URL to the @import
 			  		String newLink = "import" + importIndex + ".css";
 			  		m.appendReplacement(sb, "@import '" + newLink + "';");
+			  		importIndex++;
 			  		
 					// Map the original and new URLs together
 					importLinks.put(newLink, originalLink);
@@ -249,6 +250,7 @@ public class Spider {
 			  		// Add the new relative URL to the url()
 			  		String newLink = "url" + urlIndex;
 			  		m.appendReplacement(sb, "url('" + newLink + "')");
+			  		urlIndex++;
 			  		
 					// Map the original and new URLs together
 					urlLinks.put(newLink, originalLink);

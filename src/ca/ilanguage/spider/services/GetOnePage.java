@@ -16,6 +16,7 @@ public class GetOnePage extends IntentService {
 	public static final String CONTENT_URI = "contentUri";
 	public static final String URL_COLUMN_NAME = "url";
 	public static final String HTML_FILE_COLUMN_NAME = "html";
+	public static final String TITLE_COLUMN_NAME = "title";
 	public static final String CREATED_COLUMN_NAME = "created";
 	public static final String MODIFIED_COLUMN_NAME = "modified";
 
@@ -60,6 +61,9 @@ public class GetOnePage extends IntentService {
 		} else {
 			Log.d(TAG, "Could not write to SD card.");
 		}
+		
+		// Get the title of the HTML page
+		String title = spider.getTitle();
 
 		// Insert a row into the database with the URL and the file location of
 		// its HTML.
@@ -68,17 +72,21 @@ public class GetOnePage extends IntentService {
 				intent.getStringExtra(GetOnePage.URL),
 				intent.getStringExtra(GetOnePage.HTML_FILE_COLUMN_NAME),
 				fileLocation,
+				intent.getStringExtra(GetOnePage.TITLE_COLUMN_NAME),
+				title,
 				intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
 				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME));
 	}
 
 	private void insertUrlIntoDatabase(String contentUri, String urlName,
 			String urlValue, String htmlFileName, String htmlValue,
-			String createdDateName, String modifiedDateName) {
+			String titleName, String titleValue, String createdDateName, 
+			String modifiedDateName) {
 		// Put together all the values for the new row
 		ContentValues values = new ContentValues();
 		values.put(urlName, urlValue);
 		values.put(htmlFileName, htmlValue);
+		values.put(titleName, titleValue);
 		values.put(createdDateName, System.currentTimeMillis());
 		values.put(modifiedDateName, System.currentTimeMillis());
 
