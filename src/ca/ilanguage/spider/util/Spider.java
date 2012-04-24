@@ -1,5 +1,6 @@
 package ca.ilanguage.spider.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +26,18 @@ public class Spider {
 		try {
 			doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
+			Log.e(TAG, "io exception", e);
+		}
+	}
+	
+	/** 
+	 * Initializes a DOM object of the given HTML file.
+	 */
+	public Spider(File f) {
+		try {
+			doc = Jsoup.parse(f, "UTF-8");
+		} catch (IOException e) {
+			Log.e(TAG, "io exception", e);
 		}
 	}
 
