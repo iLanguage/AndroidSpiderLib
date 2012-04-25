@@ -2,12 +2,16 @@ package ca.ilanguage.spider.services;
 
 import java.util.HashMap;
 
+import ca.ilanguage.spider.bean.SpiderResult;
 import ca.ilanguage.spider.util.SdCardDao;
 import ca.ilanguage.spider.util.Spider;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 
 public class GetOnePage extends IntentService {
@@ -20,6 +24,7 @@ public class GetOnePage extends IntentService {
 	public static final String TITLE_COLUMN_NAME = "title";
 	public static final String CREATED_COLUMN_NAME = "created";
 	public static final String MODIFIED_COLUMN_NAME = "modified";
+	public static final String MESSENGER = "messenger";
 
 	public GetOnePage() {
 		super("GetOnePage");
@@ -76,6 +81,23 @@ public class GetOnePage extends IntentService {
 				title,
 				intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
 				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME));
+		
+		// Send a Message back to the caller, if they wanted one
+		// Code based on: http://www.vogella.com/articles/AndroidServices/article.html#tutorial_intentservice
+		Bundle extras = intent.getExtras();
+		if (extras != null) {
+			Messenger messenger = (Messenger) extras.get(MESSENGER);
+			// If the user gave us a Messenger
+			if (messenger != null) {
+				Message msg = Message.obtain();
+				msg.obj = new SpiderResult(intent.getStringExtra(URL), fileLocation);
+				try {
+					messenger.send(msg);
+				} catch (android.os.RemoteException e) {
+					Log.e(getClass().getName(), "Exception sending message", e);
+				}
+			}
+		}
 	}
 
 	private void insertUrlIntoDatabase(String contentUri, String urlName,
