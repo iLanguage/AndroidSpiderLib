@@ -29,17 +29,6 @@ public class Spider {
 			Log.e(TAG, "io exception", e);
 		}
 	}
-	
-	/** 
-	 * Initializes a DOM object of the given HTML file.
-	 */
-	public Spider(File f) {
-		try {
-			doc = Jsoup.parse(f, "UTF-8");
-		} catch (IOException e) {
-			Log.e(TAG, "io exception", e);
-		}
-	}
 
 	/**
 	 * Get the HTML as a String.
