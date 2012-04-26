@@ -32,7 +32,7 @@ public class GetOnePage extends IntentService {
 
 	public GetOnePage(String name) {
 		super(name);
-	}
+	} 
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
