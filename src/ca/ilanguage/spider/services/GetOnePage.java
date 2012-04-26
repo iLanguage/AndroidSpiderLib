@@ -72,7 +72,7 @@ public class GetOnePage extends IntentService {
 
 		// Insert a row into the database with the URL and the file location of
 		// its HTML.
-		insertUrlIntoDatabase(intent.getStringExtra(GetOnePage.CONTENT_URI),
+		String rowId = insertUrlIntoDatabase(intent.getStringExtra(GetOnePage.CONTENT_URI),
 				intent.getStringExtra(GetOnePage.URL_COLUMN_NAME),
 				intent.getStringExtra(GetOnePage.URL),
 				intent.getStringExtra(GetOnePage.HTML_FILE_COLUMN_NAME),
@@ -90,7 +90,7 @@ public class GetOnePage extends IntentService {
 			// If the user gave us a Messenger
 			if (messenger != null) {
 				Message msg = Message.obtain();
-				msg.obj = new SpiderResult(intent.getStringExtra(URL), fileLocation);
+				msg.obj = new SpiderResult(intent.getStringExtra(URL), fileLocation, rowId);
 				try {
 					messenger.send(msg);
 				} catch (android.os.RemoteException e) {
@@ -100,7 +100,7 @@ public class GetOnePage extends IntentService {
 		}
 	}
 
-	private void insertUrlIntoDatabase(String contentUri, String urlName,
+	private String insertUrlIntoDatabase(String contentUri, String urlName,
 			String urlValue, String htmlFileName, String htmlValue,
 			String titleName, String titleValue, String createdDateName, 
 			String modifiedDateName) {
@@ -112,7 +112,15 @@ public class GetOnePage extends IntentService {
 		values.put(createdDateName, System.currentTimeMillis());
 		values.put(modifiedDateName, System.currentTimeMillis());
 
-		// Insert the new row into the database
-		this.getContentResolver().insert(Uri.parse(contentUri), values);
+		// Insert the new row into the database and get its row URI
+		String uri = this.getContentResolver().insert(Uri.parse(contentUri), values).toString();
+		
+		// Extract the row ID from the row URI
+		String rowId = "";
+		if (uri != null) {
+			rowId = uri.substring(uri.lastIndexOf("/") + 1);
+		}
+		
+		return rowId;
 	}
 }
