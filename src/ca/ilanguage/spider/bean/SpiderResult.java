@@ -1,16 +1,26 @@
 package ca.ilanguage.spider.bean;
 
 public class SpiderResult {
+	private Boolean isSuccessful;
 	private String originalUrl;
 	private String fileLocation;
 	private String surveyId;
 	
-	public SpiderResult(String originalUrl, String fileLocation, String surveyId) {
+	public SpiderResult(Boolean isSuccessful, String originalUrl, String fileLocation, String surveyId) {
+		this.isSuccessful = isSuccessful;
 		this.originalUrl = originalUrl;
 		this.fileLocation = fileLocation;
 		this.surveyId = surveyId;
 	}
 	
+	public Boolean getIsSuccessful() {
+		return isSuccessful;
+	}
+
+	public void setIsSuccessful(Boolean isSuccessful) {
+		this.isSuccessful = isSuccessful;
+	}
+
 	public String getOriginalUrl() {
 		return originalUrl;
 	}

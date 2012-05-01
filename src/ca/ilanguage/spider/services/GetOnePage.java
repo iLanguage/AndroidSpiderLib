@@ -1,5 +1,6 @@
 package ca.ilanguage.spider.services;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import ca.ilanguage.spider.bean.SpiderResult;
@@ -38,49 +39,56 @@ public class GetOnePage extends IntentService {
 	protected void onHandleIntent(Intent intent) {
 		Log.d(TAG, "I am going to spider this URL: " + intent.getStringExtra(GetOnePage.URL));
 
-		// Create a Spider to spider the HTML of the given URL
-		Spider spider = new Spider(intent.getStringExtra(GetOnePage.URL));
-
+		Spider spider = null;
 		String fileLocation = "";
-		if (SdCardDao.isWritable()) {
-			// Save the linked CSS file(s) and modify the HTML to point to the new location(s)
-			HashMap<String, String> cssLinks = spider.getAndReplaceCss(intent.getStringExtra(FILE_PREFIX) + "link", ".css");
-			for (String newLink : cssLinks.keySet()) {
-				SdCardDao.downloadFromUrl(cssLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
-			}
-			
-			// Save the CSS file(s) imported in the <style> tag and modify the HTML to point to the new location(s)
-			HashMap<String, String> importLinks = spider.getAndReplaceImports(intent.getStringExtra(FILE_PREFIX) + "import", ".css");
-			for (String newLink : importLinks.keySet()) {
-				SdCardDao.downloadFromUrl(importLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
-			}
-			
-			// Save the files referenced by the CSS in the <style> tag and modify the HTML to point to the new location(s)
-			HashMap<String, String> fileLinks = spider.getAndReplaceUrls(intent.getStringExtra(FILE_PREFIX) + "url", "");
-			for (String newLink : fileLinks.keySet()) {
-				SdCardDao.downloadFromUrl(fileLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
-			}
-			
-			// Save the modified HTML
-			fileLocation = SdCardDao.writeToFile(spider.getHtml(), getApplicationContext().getExternalFilesDir(null).toString(), intent.getStringExtra(FILE_PREFIX) + "index.html");
-		} else {
-			Log.d(TAG, "Could not write to SD card.");
-		}
+		String rowId = "";
 		
-		// Get the title of the HTML page
-		String title = spider.getTitle();
-
-		// Insert a row into the database with the URL and the file location of
-		// its HTML.
-		String rowId = insertUrlIntoDatabase(intent.getStringExtra(GetOnePage.CONTENT_URI),
-				intent.getStringExtra(GetOnePage.URL_COLUMN_NAME),
-				intent.getStringExtra(GetOnePage.URL),
-				intent.getStringExtra(GetOnePage.HTML_FILE_COLUMN_NAME),
-				fileLocation,
-				intent.getStringExtra(GetOnePage.TITLE_COLUMN_NAME),
-				title,
-				intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
-				intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME));
+		try {
+			// Create a Spider to spider the HTML of the given URL
+			spider = new Spider(intent.getStringExtra(GetOnePage.URL));
+	
+			if (SdCardDao.isWritable()) {
+				// Save the linked CSS file(s) and modify the HTML to point to the new location(s)
+				HashMap<String, String> cssLinks = spider.getAndReplaceCss(intent.getStringExtra(FILE_PREFIX) + "link", ".css");
+				for (String newLink : cssLinks.keySet()) {
+					SdCardDao.downloadFromUrl(cssLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
+				}
+				
+				// Save the CSS file(s) imported in the <style> tag and modify the HTML to point to the new location(s)
+				HashMap<String, String> importLinks = spider.getAndReplaceImports(intent.getStringExtra(FILE_PREFIX) + "import", ".css");
+				for (String newLink : importLinks.keySet()) {
+					SdCardDao.downloadFromUrl(importLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
+				}
+				
+				// Save the files referenced by the CSS in the <style> tag and modify the HTML to point to the new location(s)
+				HashMap<String, String> fileLinks = spider.getAndReplaceUrls(intent.getStringExtra(FILE_PREFIX) + "url", "");
+				for (String newLink : fileLinks.keySet()) {
+					SdCardDao.downloadFromUrl(fileLinks.get(newLink), getApplicationContext().getExternalFilesDir(null).toString(), newLink);
+				}
+				
+				// Save the modified HTML
+				fileLocation = SdCardDao.writeToFile(spider.getHtml(), getApplicationContext().getExternalFilesDir(null).toString(), intent.getStringExtra(FILE_PREFIX) + "index.html");
+			} else {
+				Log.d(TAG, "Could not write to SD card.");
+			}
+			
+			// Get the title of the HTML page
+			String title = spider.getTitle();
+	
+			// Insert a row into the database with the URL and the file location of
+			// its HTML.
+			rowId = insertUrlIntoDatabase(intent.getStringExtra(GetOnePage.CONTENT_URI),
+					intent.getStringExtra(GetOnePage.URL_COLUMN_NAME),
+					intent.getStringExtra(GetOnePage.URL),
+					intent.getStringExtra(GetOnePage.HTML_FILE_COLUMN_NAME),
+					fileLocation,
+					intent.getStringExtra(GetOnePage.TITLE_COLUMN_NAME),
+					title,
+					intent.getStringExtra(GetOnePage.CREATED_COLUMN_NAME),
+					intent.getStringExtra(GetOnePage.MODIFIED_COLUMN_NAME));
+		} catch (IOException e) {
+			Log.e(TAG, "Error parsing URL: " + intent.getStringExtra(URL));
+		}
 		
 		// Send a Message back to the caller, if they wanted one
 		// Code based on: http://www.vogella.com/articles/AndroidServices/article.html#tutorial_intentservice
@@ -90,7 +98,7 @@ public class GetOnePage extends IntentService {
 			// If the user gave us a Messenger
 			if (messenger != null) {
 				Message msg = Message.obtain();
-				msg.obj = new SpiderResult(intent.getStringExtra(URL), fileLocation, rowId);
+				msg.obj = new SpiderResult((spider != null) && spider.isSpiderInitialized(), intent.getStringExtra(URL), fileLocation, rowId);
 				try {
 					messenger.send(msg);
 				} catch (android.os.RemoteException e) {

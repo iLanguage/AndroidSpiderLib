@@ -11,22 +11,22 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import android.util.Log;
-
 // Code based on: http://www.javaworld.com/javaworld/jw-11-2004/jw-1101-spider.html
 public class Spider {
-	private static final String TAG = "Spider";
 	private Document doc = null;
 	
 	/**
 	 * Initializes a DOM object of the given URL's HTML.
 	 */
-	public Spider(String url) {
-		try {
-			doc = Jsoup.connect(url).get();
-		} catch (IOException e) {
-			Log.e(TAG, "io exception", e);
-		}
+	public Spider(String url) throws IOException {
+		doc = Jsoup.connect(url).get();	
+	}
+
+	/**
+	 * Determine whether (true) or not (false) the DOM object has been initialized.
+	 */
+	public Boolean isSpiderInitialized() {
+		return doc != null;
 	}
 
 	/**
